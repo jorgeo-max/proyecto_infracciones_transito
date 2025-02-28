@@ -3,75 +3,337 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplicación de Infracciones de Tránsito</title>
+    <title>Sistema de Infracciones de Tránsito</title>
     <style>
-        /* Estilos generales */
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+        * {
             margin: 0;
-            background-color: #f4f4f4;
-            font-family: Arial, Helvetica, sans-serif
-            text-align: center;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
         }
         
-        /* Centrar el titulo en la parte superior */
-        h1 {
-            position:absolute
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        /* Contenedor centrado */
-        .container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-            width: 100%;
-        }
-        
-        /* Estilos del cuadro de consulta */
-        .chatbot-box {
+        body {
+            background-color: #f5f5f5;
             padding: 20px;
-            border: 2px solid #ccc;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         }
-            input, button {
-            margin-top: 10px;
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+        
+        .tab.active {
+            background-color: white;
+            border-bottom: 1px solid white;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .search-container {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px 0 0 5px;
+            font-size: 16px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .result-container {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+        }
+        
+        .no-results {
+            color: #e74c3c;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .chatbot-response {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f8ff;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
         }
     </style>
 </head>
 <body>
-    <h1>Bienvenido a la Aplicación de Infracciones de Tránsito</h1>
     <div class="container">
-        <label for="query">Consulta:</label>
-        <input type="text" id="query" placeholder="Ingresa tu consulta aquí">
-        <button onclick="consultar()">Enviar"> </button>
-        <p id="Respuesta"></p>">
+        <h1>Sistema de Infracciones de Tránsito</h1>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="id-search">Buscar por ID</div>
+            <div class="tab" data-tab="chatbot">Consultar por Estrato</div>
+        </div>
+        
+        <!-- Búsqueda por ID -->
+        <div class="tab-content active" id="id-search">
+            <div class="search-container">
+                <input type="text" id="id-input" placeholder="Ingrese el ID de la infracción">
+                <button id="search-id-btn">Buscar</button>
+            </div>
+            <div id="id-result" class="result-container" style="display: none;"></div>
+        </div>
+        
+        <!-- Chatbot por estrato socioeconómico -->
+        <div class="tab-content" id="chatbot">
+            <div class="search-container">
+                <input type="text" id="chatbot-input" placeholder="Consulte infracciones por estrato socioeconómico">
+                <button id="chatbot-btn">Enviar</button>
+            </div>
+            <div id="chatbot-result" class="result-container" style="display: none;"></div>
+        </div>
     </div>
-</div>
 
-<script>
-    function consultar() {
-        const query = document.getElementById('query').value;
-        fetch('/chatbot?query=${encodeURIComponent(query)}')
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('Respuesta').textContent = data.respuesta;
-        })
-            
-        .catch(error => {
-            console.error('Error al consultar:', error);
+    <script>
+        // Cambiar entre pestañas
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Eliminar clase active de todas las pestañas
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Agregar clase active a la pestaña seleccionada
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
         });
-    }
-</script>
+        
+        // Configuración de la URL base de la API
+        const API_BASE_URL = '';  // Si está en el mismo dominio puede estar vacío
+        
+        // Buscar por ID
+        document.getElementById('search-id-btn').addEventListener('click', async () => {
+            const idInput = document.getElementById('id-input').value.trim();
+            const resultContainer = document.getElementById('id-result');
+            
+            if (!idInput) {
+                resultContainer.innerHTML = '<div class="no-results">Por favor ingrese un ID válido</div>';
+                resultContainer.style.display = 'block';
+                return;
+            }
+            
+            resultContainer.innerHTML = '<div class="loading">Buscando...</div>';
+            resultContainer.style.display = 'block';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/datos/${idInput}`);
+                
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        resultContainer.innerHTML = '<div class="no-results">¡Registro no existe en la base de datos!</div>';
+                    } else {
+                        resultContainer.innerHTML = `<div class="no-results">Error: ${response.status} - ${response.statusText}</div>`;
+                    }
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                // Crear tabla con resultados
+                resultContainer.innerHTML = `
+                    <h3>Detalles de la Infracción ID: ${data.id}</h3>
+                    <table>
+                        <tr>
+                            <th>Campo</th>
+                            <th>Valor</th>
+                        </tr>
+                        <tr>
+                            <td>ID</td>
+                            <td>${data.id}</td>
+                        </tr>
+                        <tr>
+                            <td>Estrato Socioeconómico</td>
+                            <td>${data.ssb}</td>
+                        </tr>
+                        <tr>
+                            <td>Tarifa Servicios Públicos</td>
+                            <td>${data.esp}</td>
+                        </tr>
+                        <tr>
+                            <td>Ingreso Estimado</td>
+                            <td>${data.income}</td>
+                        </tr>
+                        <tr>
+                            <td>Tipo de Infracción</td>
+                            <td>${data.tif}</td>
+                        </tr>
+                        <tr>
+                            <td>Valor Multa</td>
+                            <td>${data.valmul}</td>
+                        </tr>
+                        <tr>
+                            <td>Porcentaje de Carga</td>
+                            <td>${data.porcar}</td>
+                        </tr>
+                        <tr>
+                            <td>Porcentaje de Salvaguarda</td>
+                            <td>${data.savepor}</td>
+                        </tr>
+                        <tr>
+                            <td>Valor a Cancelar</td>
+                            <td>${data.valcan}</td>
+                        </tr>
+                    </table>
+                `;
+            } catch (error) {
+                resultContainer.innerHTML = `<div class="no-results">Error: ${error.message}</div>`;
+            }
+        });
+        
+        // Consultar chatbot
+        document.getElementById('chatbot-btn').addEventListener('click', async () => {
+            const query = document.getElementById('chatbot-input').value.trim();
+            const resultContainer = document.getElementById('chatbot-result');
+            
+            if (!query) {
+                resultContainer.innerHTML = '<div class="no-results">Por favor ingrese una consulta</div>';
+                resultContainer.style.display = 'block';
+                return;
+            }
+            
+            resultContainer.innerHTML = '<div class="loading">Consultando...</div>';
+            resultContainer.style.display = 'block';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/chatbot?query=${encodeURIComponent(query)}`);
+                
+                if (!response.ok) {
+                    resultContainer.innerHTML = `<div class="no-results">Error: ${response.status} - ${response.statusText}</div>`;
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                let resultHTML = `
+                    <div class="chatbot-response">
+                        <p>${data.respuesta}</p>
+                    </div>
+                `;
+                
+                if (data.Multas && data.Multas.length > 0) {
+                    resultHTML += `
+                        <h3>Multas Encontradas (${data.Multas.length})</h3>
+                        <table>
+                            <tr>
+                                <th>ID</th>
+                                <th>Estrato</th>
+                                <th>Tipo Infracción</th>
+                                <th>Valor Multa</th>
+                                <th>Valor a Cancelar</th>
+                            </tr>
+                    `;
+                    
+                    data.Multas.forEach(multa => {
+                        resultHTML += `
+                            <tr>
+                                <td>${multa.id}</td>
+                                <td>${multa.ssb}</td>
+                                <td>${multa.tif}</td>
+                                <td>${multa.valmul}</td>
+                                <td>${multa.valcan}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    resultHTML += `</table>`;
+                }
+                
+                resultContainer.innerHTML = resultHTML;
+            } catch (error) {
+                resultContainer.innerHTML = `<div class="no-results">Error: ${error.message}</div>`;
+            }
+        });
+        
+        // Permitir búsqueda al presionar Enter
+        document.getElementById('id-input').addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+                document.getElementById('search-id-btn').click();
+            }
+        });
+        
+        document.getElementById('chatbot-input').addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+                document.getElementById('chatbot-btn').click();
+            }
+        });
+    </script>
 </body>
 </html>
